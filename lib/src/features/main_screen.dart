@@ -8,10 +8,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  String? zip;
+  late Future<String?> getCityFromZipFuture;
+
   @override
   void initState() {
     super.initState();
-    // TODO: initiate controllers
+    getCityFromZip(zip!);
   }
 
   @override
@@ -20,24 +23,36 @@ class _MainScreenState extends State<MainScreen> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-          child: Column(
-            children: [
-              const TextField(
-                decoration: InputDecoration(
-                    border: OutlineInputBorder(), labelText: "Postleitzahl"),
-              ),
-              const SizedBox(height: 32),
-              OutlinedButton(
-                onPressed: () {
-                  // TODO: implementiere Suche
-                },
-                child: const Text("Suche"),
-              ),
-              const SizedBox(height: 32),
-              Text("Ergebnis: Noch keine PLZ gesucht",
-                  style: Theme.of(context).textTheme.labelLarge),
-            ],
-          ),
+          child: Column(children: [
+            const TextField(
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(), labelText: "Postleitzahl"),
+            ),
+            const SizedBox(height: 32),
+            OutlinedButton(
+              onPressed: () async {
+                getCityFromZip = await getCityFromZipFuture;
+                FutureBuilder(
+                    future: getCityFromZip("10115"),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          snapshot.connectionState == ConnectionState.done) {
+                        return const Text(
+                            "Die Stadt zu Postleitzahl ist §{snapshot.data}");
+                      } else if (snapshot.connectionState !=
+                          ConnectionState.done) {
+                        return const CircularProgressIndicator();
+                      } else {
+                        return const Icon(Icons.error);
+                      }
+                    });
+              },
+              child: const Text("Suche"),
+            ),
+            const SizedBox(height: 32),
+            Text("Ergebnis: Noch keine PLZ gesucht",
+                style: Theme.of(context).textTheme.labelLarge),
+          ]),
         ),
       ),
     );
@@ -45,7 +60,6 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void dispose() {
-    // TODO: dispose controllers
     super.dispose();
   }
 
@@ -62,7 +76,6 @@ class _MainScreenState extends State<MainScreen> {
         return 'München';
       case "50667":
         return 'Köln';
-      case "60311":
       case "60313":
         return 'Frankfurt am Main';
       default:
